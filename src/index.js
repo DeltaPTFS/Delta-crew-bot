@@ -28,8 +28,8 @@ client.once(Events.ClientReady,async bot=>{
     const crewGuild=await bot.guilds.fetch(guildId).catch(()=>null);
     if(crewGuild)fullSync(crewGuild).catch(err=>console.warn('Initial Crew roster sync:',err.message));
     if(crewGuild)setInterval(()=>fullSync(crewGuild).catch(err=>console.warn('Crew roster reconciliation:',err.message)),6*60*60*1000).unref();
+    dispatcher.dispatch().catch(err=>console.error('Crew event sync:',err));
   }
-  else dispatcher.dispatch().catch(err=>console.error('Crew event sync:',err));
   const interval=Math.max(15000,Number(process.env.POLL_INTERVAL_MS)||30000);
   setInterval(()=>{if(configured())dispatcher.dispatch().catch(err=>console.error('Crew event sync:',err));},interval).unref();
 });
