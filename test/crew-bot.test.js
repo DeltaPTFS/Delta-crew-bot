@@ -3,6 +3,7 @@ const test=require('node:test');
 const assert=require('node:assert/strict');
 const {channelFor,render}=require('../src/dispatcher');
 const {permitted,canSync,command}=require('../src/commands');
+const {row:crewRow}=require('../src/roster-sync');
 
 test('Crew notifications route restricted forms and all responses to private HR',()=>{
   const env={CREW_ANNOUNCEMENTS_CHANNEL_ID:'public',CREW_FORM_RESPONSES_CHANNEL_ID:'private',CREW_FLIGHTS_CHANNEL_ID:'flights'};
@@ -34,4 +35,14 @@ test('All required Crew actions are registered',()=>{
   assert.equal(json.name,'crew');
   assert.ok(json.options[0].choices.some(c=>c.value==='forms'));
   assert.ok(json.options[0].choices.some(c=>c.value==='flights'));
+});
+
+test('Crew roster events include only the Crew guild and exact role IDs',()=>{
+  const member={id:'1554669633573888010',displayName:'Example Crew',user:{username:'crew.example'},
+    guild:{id:'1554669999999999999',name:'Delta Crew'},
+    roles:{cache:new Map([['1554669999999999999',{id:'1554669999999999999',name:'@everyone'}],
+      ['1554666482988875788',{id:'1554666482988875788',name:'Human Resources'}]])}};
+  const item=crewRow(member);
+  assert.equal(item.guildName,'Delta Crew');
+  assert.deepEqual(item.roleIds,['1554666482988875788']);
 });
