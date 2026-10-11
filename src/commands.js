@@ -37,7 +37,16 @@ async function handle(interaction,options={}){
       return;
     }
     if(action==='forms'){
-      const forms=(await web.getForms()).forms||[];
+      const allForms=(await web.getForms()).forms||[];
+      const userRoles=new Set([...interaction.member.roles.cache.keys()]);
+      const forms=allForms.filter(form=>{
+        const perms=form.allowed_roles||{};
+        const crew=perms.crew||[];
+        const airlines=perms.airlines||[];
+        // No roles selected: open to either guild. Otherwise only list
+        // forms where this Crew member carries an eligible Crew role.
+        return (!crew.length&&!airlines.length)||crew.some(role=>userRoles.has(String(role)));
+      });
       if(!forms.length){await interaction.editReply('No published crew forms are currently available.');return;}
       await interaction.editReply({embeds:[new EmbedBuilder().setColor(0xC8102E).setTitle('Delta Crew | Active Forms')
         .setDescription(forms.slice(0,15).map(f=>'• **'+f.title.slice(0,100)+'** — [Open form]('+f.url+')').join('\n'))
