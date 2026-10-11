@@ -1,0 +1,19 @@
+{
+  "name": "delta-air-lines-crew-bot",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Delta Air Lines Roblox Roleplay — dedicated Crew Discord integration",
+  "main": "src/index.js",
+  "scripts": {
+    "build": "node --check src/index.js && node --check src/web-client.js && node --check src/commands.js && node --check src/dispatcher.js",
+    "test": "node --test",
+    "start": "node src/index.js"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "dependencies": {
+    "discord.js": "^14.21.0",
+    "dotenv": "^17.2.0"
+  }
+}
