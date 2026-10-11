@@ -9,8 +9,9 @@ async function request(path,options={}){
   if(!response.ok)throw new Error('Website HTTP '+response.status+': '+String(data.detail||'Request failed').slice(0,150));
   return data;
 }
+async function sendRoster(members){return request('/internal/crew/roster',{method:'POST',body:JSON.stringify({members})});}
 async function getForms(){return request('/internal/crew/forms');}
 async function getFlights(){return request('/internal/crew/flights');}
 async function getEvents(){return request('/internal/crew/events');}
 async function ackEvent(id){if(!/^\d+$/.test(String(id)))throw new Error('Invalid event');return request('/internal/crew/events/'+id+'/ack',{method:'POST',body:'{}'});}
-module.exports={configured,getForms,getFlights,getEvents,ackEvent};
+module.exports={configured,getForms,getFlights,getEvents,ackEvent,sendRoster};
