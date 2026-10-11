@@ -5,6 +5,7 @@ const {Client,Events,GatewayIntentBits}=require('discord.js');
 const {command,handle}=require('./commands');
 const {createDispatcher}=require('./dispatcher');
 const {configured}=require('./web-client');
+const {fullSync,upsertMember}=require('./roster-sync');
 const token=process.env.DISCORD_TOKEN?.trim();
 const guildId=process.env.DELTA_CREW_GUILD_ID?.trim();
 if(!token||!/^\d{15,22}$/.test(guildId||'')){
@@ -23,6 +24,11 @@ client.once(Events.ClientReady,async bot=>{
     console.log('Registered /crew command in guild '+guildId);
   }catch(err){console.error('Failed to register /crew:',err);}
   if(!configured())console.warn('Website sync is not configured.');
+  else {
+    const crewGuild=await bot.guilds.fetch(guildId).catch(()=>null);
+    if(crewGuild)fullSync(crewGuild).catch(err=>console.warn('Initial Crew roster sync:',err.message));
+    if(crewGuild)setInterval(()=>fullSync(crewGuild).catch(err=>console.warn('Crew roster reconciliation:',err.message)),6*60*60*1000).unref();
+  }
   else dispatcher.dispatch().catch(err=>console.error('Crew event sync:',err));
   const interval=Math.max(15000,Number(process.env.POLL_INTERVAL_MS)||30000);
   setInterval(()=>{if(configured())dispatcher.dispatch().catch(err=>console.error('Crew event sync:',err));},interval).unref();
@@ -31,6 +37,8 @@ client.on(Events.InteractionCreate,async interaction=>{
   if(!interaction.isChatInputCommand()||interaction.commandName!=='crew')return;
   await handle(interaction,{guildId,dispatch:dispatcher.dispatch}).catch(err=>console.error('Crew command:',err));
 });
+client.on(Events.GuildMemberAdd,member=>{if(member.guild.id===guildId&&configured())upsertMember(member).catch(console.error);});
+client.on(Events.GuildMemberUpdate,(_old,member)=>{if(member.guild.id===guildId&&configured())upsertMember(member).catch(console.error);});
 client.on(Events.Error,err=>console.error('Discord connection:',err));
 const port=Number(process.env.PORT)||3000;
 http.createServer((_req,res)=>{
