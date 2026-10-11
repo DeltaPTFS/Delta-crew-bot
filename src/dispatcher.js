@@ -4,7 +4,7 @@ const web=require('./web-client');
 const MAX_PER_POLL=12;
 const idMarker=id=>'DELTA-CREW-WEB-EVENT-'+id;
 function channelFor(event,env=process.env){
-  if(event.kind==='form_response')return env.CREW_FORM_RESPONSES_CHANNEL_ID||env.CREW_HR_CHANNEL_ID;
+  if(event.kind==='form_response'||(event.kind==='form_published'&&event.payload?.restricted))return env.CREW_FORM_RESPONSES_CHANNEL_ID||env.CREW_HR_CHANNEL_ID;
   if(event.kind==='flight')return env.CREW_FLIGHTS_CHANNEL_ID||env.CREW_ANNOUNCEMENTS_CHANNEL_ID;
   return env.CREW_ANNOUNCEMENTS_CHANNEL_ID;
 }
