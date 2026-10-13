@@ -56,3 +56,12 @@ Configure separate bot applications/tokens for the main server and Crew; on the 
 Enable **Server Members Intent**, invite the Crew bot with `bot` + `applications.commands` scopes, and grant access only to its announcement, flight and private HR channels. It needs read, send messages, embed links and read message history permissions.
 
 Discord authorization is consent-based. Signing into the website may join the main Delta Air Lines guild only if the user grants Discord's `guilds.join` OAuth permission; it never silently adds users to the private Crew guild.
+
+
+## SkyMiles signup guide in the main Delta server
+
+The Crew bot also provides a staff-only `/skymiles` signup announcement in the **main Delta Air Lines server** (`1538738611988467782`). It includes the official SkyMiles website link button with the custom ExternalLink emoji and optional `top-banner` / `bottom-banner` image attachments (up to 8 MB).
+
+**Deployment requirement:** Invite this same Crew bot application to the main Delta server with the `applications.commands` scope and permissions to send messages, embed links, and attach files. On restart, the bot registers `/skymiles` there if it can access the guild. Existing `/crew` commands remain scoped to the Crew server. The command requires the user's **Manage Server** permission. The HelpDesk project is not involved.
+
+The website itself sends the one-time SkyMiles registration welcome DM. The separate `deltaptfs-bot` already handles the Authenticated-role welcome; neither workflow is duplicated here.
