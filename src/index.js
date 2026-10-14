@@ -3,7 +3,6 @@ require('dotenv/config');
 const http=require('node:http');
 const {Client,Events,GatewayIntentBits}=require('discord.js');
 const {command,handle}=require('./commands');
-const {command:skyMilesCommand,handle:handleSkyMiles,MAIN_GUILD}=require('./skymiles-command');
 const {createDispatcher}=require('./dispatcher');
 const {configured}=require('./web-client');
 const {fullSync,upsertMember}=require('./roster-sync');
@@ -24,12 +23,19 @@ client.once(Events.ClientReady,async bot=>{
     await guild.commands.set([command.toJSON()]);
     console.log('Registered /crew command in guild '+guildId);
   }catch(err){console.error('Failed to register /crew:',err);}
-  // This bot must also be installed in the main server for /skymiles to appear there.
+  // Migration cleanup: remove ONLY this application's old guild /skymiles command.
+  // Other Delta bots' commands and the /crew command are untouched.
   try{
-    const mainGuild=await bot.guilds.fetch(MAIN_GUILD);
-    await mainGuild.commands.create(skyMilesCommand.toJSON());
-    console.log('Registered /skymiles in Delta Air Lines '+MAIN_GUILD);
-  }catch(err){console.warn('Could not register /skymiles in main Delta server. Invite this bot to the main server if needed:',err.message);}
+    const mainGuild=await bot.guilds.fetch('1538738611988467782');
+    const existing=await mainGuild.commands.fetch();
+    const oldSignup=existing.find(item=>item.name==='skymiles');
+    if(oldSignup){
+      await mainGuild.commands.delete(oldSignup.id);
+      console.log('Removed obsolete Crew-bot /skymiles command from main guild.');
+    }
+  }catch(err){
+    console.warn('Crew-bot /skymiles cleanup needs the bot to be able to access the main guild:',err.message);
+  }
   if(!configured())console.warn('Website sync is not configured.');
   else {
     const crewGuild=await bot.guilds.fetch(guildId).catch(()=>null);
@@ -42,9 +48,6 @@ client.once(Events.ClientReady,async bot=>{
 });
 client.on(Events.InteractionCreate,async interaction=>{
   if(!interaction.isChatInputCommand())return;
-  if(interaction.commandName==='skymiles'){
-    await handleSkyMiles(interaction).catch(err=>console.error('SkyMiles command:',err));return;
-  }
   if(interaction.commandName!=='crew')return;
   await handle(interaction,{guildId,dispatch:dispatcher.dispatch}).catch(err=>console.error('Crew command:',err));
 });
